@@ -2,6 +2,7 @@
 
 import { useState } from "react";
   import FloatingLines from '../components/FloatingLines';
+import EmailSubscriptionForm from '../components/EmailSubscriptionForm';
 
 // Feature data
 const features = [
@@ -64,21 +65,6 @@ const features = [
 
 
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
-    setIsSubmitting(true);
-    // Simulate API call - replace with actual implementation
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setEmail("");
-  };
 
   return (
     <main className="min-h-screen bg-background">
@@ -125,38 +111,7 @@ export default function Home() {
           </div>
 
           {/* Email Form with Glassmorphism */}
-          <div className="max-w-full w-2xl mx-auto">
-            
-            <div className="opacity-0 animate-fade-in-up animate-delay-400 p-2 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col sm:flex-row gap-2"
-              >
-                <input
-                  type="email"
-                  placeholder="Votre adresse e-mail"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSubmitted}
-                  className="flex-1 px-5 py-4 bg-transparent border-none rounded-xl text-foreground placeholder:text-white/50 text-base focus:ring-0 focus:outline-none disabled:opacity-50"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting || isSubmitted}
-                  className="px-8 py-4 bg-accent hover:bg-accent-light text-black font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95"
-                >
-                  {isSubmitted ? "Merci !" : isSubmitting ? "..." : "Accès anticipé"}
-                </button>
-              </form>
-            </div>
-
-            {isSubmitted && (
-              <p className="text-white mt-4 text-center px-5">
-                Vous serez notifié dès l'ouverture de l'accès anticipé !
-              </p>
-            )}
-          </div>
+          <EmailSubscriptionForm />
 
           {/* Scroll indicator */}
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce">
@@ -305,37 +260,8 @@ export default function Home() {
             Soyez parmi les premiers à essayer Koda. Inscrivez-vous pour être notifié dès la sortie.
           </p>
 
-          {/* Email Form (duplicate) */}
-          <div className="max-w-xl mx-auto">
-            {isSubmitted && (
-              <p className="text-accent mb-4 text-lg font-medium animate-fade-in-up text-left px-7">
-                Vous serez notifié dès la sortie de la beta !
-              </p>
-            )}
-            <div className="p-2 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
-              <form
-                onSubmit={handleSubmit}
-                className="flex flex-col sm:flex-row gap-2"
-              >
-                <input
-                  type="email"
-                  placeholder="Votre adresse e-mail"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSubmitted}
-                  className="flex-1 px-5 py-4 bg-transparent border-none rounded-xl text-foreground placeholder:text-white/50 text-base focus:ring-0 focus:outline-none disabled:opacity-50"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting || isSubmitted}
-                  className="px-8 py-4 bg-accent hover:bg-accent-light text-black font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95"
-                >
-                  {isSubmitted ? "Merci ! ✓" : isSubmitting ? "..." : "Accès anticipé"}
-                </button>
-              </form>
-            </div>
-          </div>
+          {/* Email Form */}
+          <EmailSubscriptionForm className="max-w-xl mx-auto" />
         </div>
       </section>
 
@@ -346,10 +272,10 @@ export default function Home() {
             © {new Date().getFullYear()} Koda. Tous droits réservés.
           </div>
           <a 
-            href="mailto:contact@koda.so" 
+            href="mailto:contact@get-koda.com" 
             className="text-text-muted text-xs hover:text-accent transition-colors"
           >
-            contact@koda.so
+            contact@get-koda.com
           </a>
         </div>
       </footer>

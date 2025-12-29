@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-  import FloatingLines from '../components/FloatingLines';
+import FloatingLines from '../components/FloatingLines';
 import EmailSubscriptionForm from '../components/EmailSubscriptionForm';
 
 // Feature data
@@ -80,8 +79,11 @@ export default function Home() {
           bendRadius={2.0}
           bendStrength={-0.15}
           interactive={true}
-          parallax={false}
+          parallax={true}
           middleWavePosition={{x:0, y:-0.4, rotate:0.25}}
+          mouseDamping={0.1}
+          maxFPS={60}
+          parallaxStrength={0.05}
         />
         {/* Subtle dark overlay to improve readability of text over the lines */}
         <div className="absolute inset-0 bg-black/40 pointer-events-none" />

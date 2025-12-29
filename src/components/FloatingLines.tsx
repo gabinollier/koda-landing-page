@@ -11,8 +11,6 @@ import {
   Clock
 } from 'three';
 
-import './FloatingLines.css';
-
 const vertexShader = `
 precision highp float;
 
@@ -101,7 +99,7 @@ vec3 getLineColor(float t, vec3 baseColor) {
   return gradientColor * 0.5;
 }
 
-  float wave(vec2 uv, float offset, vec2 screenUv, vec2 mouseUv, bool shouldBend) {
+float wave(vec2 uv, float offset, vec2 screenUv, vec2 mouseUv, bool shouldBend) {
   float time = iTime * animationSpeed;
 
   float x_offset   = offset;
@@ -111,7 +109,7 @@ vec3 getLineColor(float t, vec3 baseColor) {
 
   if (shouldBend) {
     vec2 d = screenUv - mouseUv;
-    float influence = exp(-dot(d, d) * bendRadius); // radial falloff around cursor
+    float influence = exp(-dot(d, d) * bendRadius);
     float bendOffset = (mouseUv.y - screenUv.y) * influence * bendStrength * bendInfluence;
     y += bendOffset;
   }
@@ -227,6 +225,8 @@ type FloatingLinesProps = {
   parallax?: boolean;
   parallaxStrength?: number;
   mixBlendMode?: React.CSSProperties['mixBlendMode'];
+  maxFPS?: number; // NEW: Frame rate limiter
+  pixelRatio?: number; // NEW: Control render resolution
 };
 
 function hexToVec3(hex: string): Vector3 {
@@ -268,7 +268,9 @@ export default function FloatingLines({
   mouseDamping = 0.05,
   parallax = true,
   parallaxStrength = 0.2,
-  mixBlendMode = 'screen'
+  mixBlendMode = 'screen',
+  maxFPS = 60, // Default to 60 FPS
+  pixelRatio = 1 // Default to 1x resolution (can be lowered for more performance)
 }: FloatingLinesProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const targetMouseRef = useRef<Vector2>(new Vector2(-1000, -1000));
@@ -308,8 +310,8 @@ export default function FloatingLines({
     const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
     camera.position.z = 1;
 
-    const renderer = new WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const renderer = new WebGLRenderer({ antialias: false, alpha: false }); // Disabled antialias for performance
+    renderer.setPixelRatio(Math.min(pixelRatio, window.devicePixelRatio || 1));
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     containerRef.current.appendChild(renderer.domElement);
@@ -430,12 +432,28 @@ export default function FloatingLines({
     };
 
     if (interactive) {
-      renderer.domElement.addEventListener('pointermove', handlePointerMove);
-      renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
+      // Listen on window instead of just the canvas to track mouse everywhere
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerleave', handlePointerLeave);
     }
 
+    // Frame rate limiting
+    const frameInterval = 1000 / maxFPS;
+    let lastFrameTime = 0;
     let raf = 0;
-    const renderLoop = () => {
+
+    const renderLoop = (currentTime: number) => {
+      raf = requestAnimationFrame(renderLoop);
+
+      const deltaTime = currentTime - lastFrameTime;
+
+      // Skip frame if not enough time has passed
+      if (deltaTime < frameInterval) {
+        return;
+      }
+
+      lastFrameTime = currentTime - (deltaTime % frameInterval);
+
       uniforms.iTime.value = clock.getElapsedTime();
 
       if (interactive) {
@@ -452,9 +470,9 @@ export default function FloatingLines({
       }
 
       renderer.render(scene, camera);
-      raf = requestAnimationFrame(renderLoop);
     };
-    renderLoop();
+    
+    raf = requestAnimationFrame(renderLoop);
 
     return () => {
       cancelAnimationFrame(raf);
@@ -463,8 +481,8 @@ export default function FloatingLines({
       }
 
       if (interactive) {
-        renderer.domElement.removeEventListener('pointermove', handlePointerMove);
-        renderer.domElement.removeEventListener('pointerleave', handlePointerLeave);
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('pointerleave', handlePointerLeave);
       }
 
       geometry.dispose();
@@ -488,14 +506,17 @@ export default function FloatingLines({
     bendStrength,
     mouseDamping,
     parallax,
-    parallaxStrength
+    parallaxStrength,
+    maxFPS,
+    pixelRatio
   ]);
 
   return (
     <div
       ref={containerRef}
-      className="floating-lines-container"
       style={{
+        width: '100%',
+        height: '100%',
         mixBlendMode: mixBlendMode
       }}
     />
